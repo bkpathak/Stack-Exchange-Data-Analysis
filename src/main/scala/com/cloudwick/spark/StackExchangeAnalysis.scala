@@ -33,6 +33,7 @@ object Badge {
 }
 
 // Use Kryo instead of default Java Serilaization
+
 class MyKryoRegistrator extends KryoRegistrator {
   override def registerClasses(kryo: Kryo) {
     kryo.register(classOf[Badge])
@@ -40,7 +41,8 @@ class MyKryoRegistrator extends KryoRegistrator {
   }
 }
 
-object DataAnalyses {
+
+object StackExchangeAnalysis {
   def main(args: Array[String]) {
     if (args.length < 2) {
       System.err.println(
