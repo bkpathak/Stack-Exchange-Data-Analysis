@@ -44,25 +44,35 @@ object DataAnalyses {
   def main(args: Array[String]) {
     if (args.length < 2) {
       System.err.println(
-        "Usage: TopUsers <inputFile> <numPartitions> ")
+        "Usage: StackExchangeAnalysis <Users.xml Badges.xml> <numPartitions> ")
       System.exit(-1)
     }
+
+
+    val sparkConf = new SparkConf()
+    //set conf to use Kryo Serializer
+
+    sparkConf.set("spark.kryo.registrator", "sparking.MyKryoRegistrator")
+    sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+    sparkConf.set("spark.rdd.compress", "true")
+
+    sparkConf.setAppName("StackExchangeAnalyzer")
+
+    // log configuration when applicatkion starts
+    sparkConf.set("spark.logConf", "true")
+
+    //create new spark context
+    val sc = new SparkContext(sparkConf)
+
+    //read the input file and number of partitions, the second argument is number of partition to create
+    val users = sc.textFile(args(0), args(2).toInt)
+    val badges = sc.textFile(args(1), args(2).toInt)
+
+    //  top users based on their reputation
+    val topUsers = users.flatMap(Users.getDisplayNameReputation)
+      .map(data => data.reputation -> data.displayName)
+      .sortByKey()
+    println("Top 10 users according to reputation")
+    topUsers.take(10).foreach(println)
   }
-
-  val sparkConf = new SparkConf()
-  //set conf to use Kryo Serializer
-
-  sparkConf.set("spark.kryo.registrator", "sparking.MyKryoRegistrator")
-  sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-  sparkConf.set("spark.rdd.compress", "true")
-
-  sparkConf.setAppName("StackExchangeAnalyzer")
-
-  // log configuration when applicatkion starts
-  sparkConf.set("spark.logConf", "true")
-
-  //create new spark context
-  val sc = new SparkContext(sparkConf)
-
-  val users
 }
