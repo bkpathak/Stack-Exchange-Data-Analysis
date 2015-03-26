@@ -12,10 +12,8 @@ case class Users(reputation: Int, creationDate: String, displayName: String, age
 
 object Users {
 
-  //Regex to find reputaion and display name
-  val Regex =
-    """^.+Reputation="(\d+).+CreationDate="(\d{4}-\d{2}-\d{2})T.+".+DisplayName="([\w\._ ]*)
-      |.+Age="(\d+)".+$""".r
+  //Regex to find reputaion, creation date, display name and age
+  val Regex ="""^.+Reputation="(\d+)" CreationDate="(\d{4}-\d{2}-\d{2})T.+" DisplayName="([\w\._ ]*).+Age="(\d+)".+$""".r
 
   def getDisplayNameReputation(row: String) = row match {
     case Regex(reputation, creationDate, displayName, age) =>
