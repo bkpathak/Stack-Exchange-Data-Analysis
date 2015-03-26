@@ -8,15 +8,18 @@ import org.apache.spark.{SparkContext, SparkConf}
 /**
  * Created by bijay on 3/3/15.
  */
-case class Users(reputation: Int, displayName: String, age: Int)
+case class Users(reputation: Int, creationDate: String, displayName: String, age: Int)
 
 object Users {
 
   //Regex to find reputaion and display name
-  val Regex = """^.+Reputation="(\d+)".+DisplayName="([A-Za-z0-9_ ]*)".+Age="([0-9]{2})" .*$""".r
+  val Regex =
+    """^.+Reputation="(\d+).+CreationDate="(\d{4}-\d{2}-\d{2})T.+".+DisplayName="([\w\._ ]*)
+      |.+Age="(\d+)".+$""".r
 
   def getDisplayNameReputation(row: String) = row match {
-    case Regex(reputation, displayName, age) => Some(Users(reputation.toInt, displayName, age.toInt))
+    case Regex(reputation, creationDate, displayName, age) =>
+      Some(Users(reputation.toInt, creationDate, displayName, age.toInt))
     case _ => None
   }
 }
@@ -66,7 +69,7 @@ object StackExchangeAnalysis {
     //create new spark context
     val sc = new SparkContext(sparkConf)
 
-    //read the input file and number of partitions, the second argument is number of partition to create
+    //read the input file and number of partitions
     val users = sc.textFile(args(0))
     val badges = sc.textFile(args(1))
 
@@ -94,5 +97,13 @@ object StackExchangeAnalysis {
 
     println("10 oldest users")
     olderUser.take(10).foreach(println)
+
+    // number of users created per day
+    val usersCreatedPerDay = usersInfo.map(data => data.creationDate -> 1)
+      .reduceByKey(_ + _)
+
+    println("Numbers of user created per day")
+    usersCreatedPerDay.collect().foreach(println)
+
   }
 }
